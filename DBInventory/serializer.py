@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import *
+from .models import InventoryTypesTables, InventoryItems
 
 #This is the serializer that the model needs to transform the data of the settings from sql data to json api
-class InventoryTypes_Tables_Serializer(serializers.ModelSerializer):
+class InventoryTypesTablesSerializer(serializers.ModelSerializer):
     # validation function of the tables that are creating
     def validate_tables(self, value):
         allowed_types = {"string", "number", "created_at"}
@@ -19,21 +19,21 @@ class InventoryTypes_Tables_Serializer(serializers.ModelSerializer):
         return value
 
     class Meta:  
-        model = InventoryTypes_Tables
+        model = InventoryTypesTables
         fields = "__all__"
         
         
-class IventoryItems_Serializer(serializers.ModelSerializer):
+class IventoryItemsSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kargs):
         super().__init__(*args, **kargs)
         
-        # attrs = attributes
-        def validate(self, attrs):
-            if not attrs:
-                raise serializers.ValidationError(
-                    "No valid fields provided for this table."
-                )
-            return attrs
+        # # attrs = attributes
+        # def validate(self, attrs):
+        #     if not attrs:
+        #         raise serializers.ValidationError(
+        #             "No valid fields provided for this table."
+        #         )
+        #     return attrs
         
         table_instance = self.context.get('table_instance')
         
@@ -46,12 +46,16 @@ class IventoryItems_Serializer(serializers.ModelSerializer):
                 elif field_type == 'created_at':
                     self.fields[field_name] = serializers.DateTimeField()
         
-        def create(self, validated_data):
+    def create(self, validated_data):
             table = self.context['table_model']
             return InventoryItems.objects.create(
                 table_ref = table,
                 data = validated_data
             )
             
-        def to_representation(self, table_instance):
+    def to_representation(self, table_instance):
             return table_instance.data 
+        
+    class Meta:  
+        model = InventoryItems
+        fields = "__all__"
