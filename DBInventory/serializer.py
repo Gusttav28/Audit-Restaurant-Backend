@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import InventoryTypesTables, InventoryItems
+from .models import InventoryTypesTables, InventoryItems, TableTest
 
 #This is the serializer that the model needs to transform the data of the settings from sql data to json api
 class InventoryTypesTablesSerializer(serializers.ModelSerializer):
@@ -59,3 +59,51 @@ class IventoryItemsSerializer(serializers.ModelSerializer):
     class Meta:  
         model = InventoryItems
         fields = "__all__"
+
+
+# working with serialzers 
+class TestTableSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only = True)
+    item_name = serializers.CharField(required = True, allow_blank = True, max_length=100)
+    quantity = serializers.IntegerField(required = False, default = 1)
+
+    def create(self, validad_data):
+        return TableTest.create(**validad_data)
+    
+    def update(self, instance, validated_data):
+        instance.item_name = validated_data.get("item_name", instance.title )
+        instance.quantity = validated_data.get("quantity", instance.quantity )
+        instance.save()
+        return instance
+    
+
+# working with ModelSerializer
+
+class TestTableModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TableTest
+        fields = "__all__"
+
+
+class InventoryTableTest(serializers.ModelSerializer):
+    class Meta:
+        model = InventoryTypesTables
+        fields = "__all__"
+
+class InventoryItemTest(serializers.ModelSerializer):
+    # table = serializers.SlugRelatedField(read_only = True, slug_field = id)
+    class Meta:
+        model = InventoryItems
+        fields = "__all__"
+
+    def validate(self, attrs):
+        schema = attrs.get('schema')
+        data = attrs.get('data')
+
+        allowed_fields = schema.table.get('fields', [])
+
+        for key in data.keys():
+            if key not in allowed_fields:
+                raise serializers.ValidationError(f"Field '{key}' is not defined in the {schema.name} schema.")
+            
+        return attrs

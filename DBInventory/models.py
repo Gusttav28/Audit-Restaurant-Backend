@@ -9,9 +9,18 @@ from django.db.models import JSONField
 class InventoryTypesTables(models.Model):
     name = models.CharField(max_length=100)
     table = JSONField()
+
+    def __str__(self):
+        return self.name
     
 
 # in this class the user is gonna create base on the colums that this one added to his new tables the items for each of this columns.
 class InventoryItems(models.Model):
-    name = models.ForeignKey(InventoryTypesTables, on_delete=models.CASCADE)
+    schema = models.ForeignKey(InventoryTypesTables, on_delete=models.CASCADE)
     data = JSONField()
+
+
+class TableTest(models.Model):
+    item_name = models.CharField(max_length=100)
+    quantity = models.IntegerField()
+    created = models.DateTimeField(auto_now_add=True)

@@ -2,8 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
 from django.shortcuts import render, get_object_or_404
-from .serializer import InventoryTypesTablesSerializer, IventoryItemsSerializer
-from .models import InventoryTypesTables, InventoryItems
+from .serializer import *
+from .models import InventoryTypesTables, InventoryItems, TableTest
+
+#just for branch testingdb
+
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
 
 # Create your views here.
 
@@ -22,8 +28,8 @@ class InventoryTableView(APIView):
 
 
 class InventoryItemView(APIView):
-    def get(self, request, table_id):
-        table = get_object_or_404(InventoryTypesTables, id=table_id)
+    def get(self, request, pk):
+        table = get_object_or_404(InventoryTypesTables, id=pk)
         items = InventoryItems.objects.filter(name_id = table)
         
         serializer = IventoryItemsSerializer(
@@ -37,8 +43,8 @@ class InventoryItemView(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, table_id):
-        table = get_object_or_404(InventoryTypesTables, id=table_id)
+    def post(self, request, pk):
+        table = get_object_or_404(InventoryTypesTables, id=pk)
         
         serializer = IventoryItemsSerializer(
             data = request.data,
@@ -53,3 +59,59 @@ class InventoryItemView(APIView):
             return Response(serializer.data, status = status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    
+
+# views for testingdb
+# @csrf_exempt
+# def TableTestView(request):
+#     if request.method == "GET":
+#         table = TableTest.objects.all()
+#         serializer = TestTableModelSerializer(table, many=True)
+#         return JsonResponse(serializer.data, safe=False)
+    
+#     elif request.method == "POST":
+#         data = JSONParser().parse(request)
+#         serializer = TestTableModelSerializer(data = data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return JsonResponse(serializer.data, status = 201)
+#         return JsonResponse(serializer.errors, status=400)
+
+
+# @csrf_exempt
+# def TableTest_detail(request, pk):
+#     try:
+#         table = TableTest.objects.get(pk=pk)
+#     except TableTest.DoesNotExist:
+#         return HttpResponse(status = 404)
+
+#     if request.method == "GET":
+#         serializer = TestTableModelSerializer(table)
+#         return JsonResponse(serializer.data)
+    
+#     elif request.method == "PUT":
+#         data = JSONParser().parse(request)
+#         serializer = TestTableModelSerializer(table, data = data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return JsonResponse(serializer.data)
+#         return JsonResponse(serializer.errors, status=400)
+    
+#     elif request.method == "DELETE":
+#         table.delete()
+#         return HttpResponse(status = 204)
+    
+
+
+class TableTestViewSerializer(viewsets.ModelViewSet):
+    queryset = TableTest.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = TestTableModelSerializer
+
+class InventoryTableTestView(viewsets.ModelViewSet):
+    queryset = InventoryTypesTables.objects.all()
+    serializer_class = InventoryTableTest
+
+class InventoryItemTestView(viewsets.ModelViewSet):
+    queryset = InventoryItems.objects.all()
+    serializer_class = InventoryItemTest
