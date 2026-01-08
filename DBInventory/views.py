@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, permissions, exceptions
 from django.shortcuts import render, get_object_or_404
 from .serializer import *
 from .models import InventoryTypesTables, InventoryItems, TableTest
@@ -112,6 +112,17 @@ class InventoryTableTestView(viewsets.ModelViewSet):
     queryset = InventoryTypesTables.objects.all()
     serializer_class = InventoryTableTest
 
-class InventoryItemTestView(viewsets.ModelViewSet):
-    queryset = InventoryItems.objects.all()
+class InventoryItemTestView(viewsets.ModelViewSet): 
     serializer_class = InventoryItemTest
+
+    def get_queryset(self):
+        schema_id = self.kwargs.get('schema_pk')
+        return InventoryItems.objects.filter(schema_id = schema_id)
+    
+    def perform_create(self, serializer):
+        schema_id = self.kwargs.get('schema_pk')
+        try:
+            schema = InventoryTypesTables.objects.get(pk = schema_id)
+            serializer.save(schema = schema)
+        except InventoryTypesTables.DoesNotExist:
+            raise exceptions.NotFound("The specified Inventory doesn not exist")

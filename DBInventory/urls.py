@@ -1,13 +1,18 @@
 from . import views
 from .views import InventoryTableTestView, InventoryItemTestView
 from django.urls import path, include
+from rest_framework_nested import routers as nested_routers
 from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'InventoryTable', InventoryTableTestView, basename="InventoryTable")
-router.register(r'InventoryItems', InventoryItemTestView, basename="InventoryItem")
+
+
+schema_router = nested_routers.NestedDefaultRouter(router, r'InventoryTable', lookup = 'InventoryTable')
+schema_router.register(r'InventoryItem', InventoryItemTestView, basename='InventoryItem')
 
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('', include(schema_router.urls))
 ]
