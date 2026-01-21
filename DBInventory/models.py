@@ -24,3 +24,9 @@ class TableTest(models.Model):
     item_name = models.CharField(max_length=100)
     quantity = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
+
+
+class CustomTable(models.Model):
+    customer_id = models.IntegerField()
+    table_name = models.CharField(max_length=100)
+    schema = models.JSONField()

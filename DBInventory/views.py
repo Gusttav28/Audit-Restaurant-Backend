@@ -1,9 +1,12 @@
+from django.db import connection
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions, exceptions
 from django.shortcuts import render, get_object_or_404
 from .serializer import *
-from .models import InventoryTypesTables, InventoryItems, TableTest
+from .models import InventoryTypesTables, InventoryItems, TableTest, CustomTable
+from .services import create_custom_table
 
 #just for branch testingdb
 
@@ -126,3 +129,37 @@ class InventoryItemTestView(viewsets.ModelViewSet):
             serializer.save(schema = schema)
         except InventoryTypesTables.DoesNotExist:
             raise exceptions.NotFound("The specified Inventory doesn not exist")
+
+
+@api_view(["POST"])
+def create_table(request):
+    serializer = CustomTableSerializer(data = request.data)
+
+    if serializer.is_valid():
+        data = serializer.validated_data
+        create_custom_table(
+            data["customer_id"],
+            data["table_name"],
+            data["schema"]
+        )
+        return Response({"message":"Tablee was created successfully"})
+
+    return Response(serializer.errors, status=400)
+
+@api_view(["GET"])
+def get_table(request, table_name):
+    with connection.cursor() as cursor:
+        cursor.execute(f'SELECT * FROM {table_name}')
+        columns = [col[0] for  col in cursor.description]
+        rows = cursor.fetchall()
+
+    data = [dict(zip(columns, row)) for row in rows]
+    return Response(data)
+
+
+class TablesView(viewsets.ModelViewSet):
+    serializer_class = CustomTableSerializer
+
+    def get_queryset(self):
+        customer_id = self.kwargs.get('customer_id')
+        return CustomTable.objects.filter(customer_id=customer_id)

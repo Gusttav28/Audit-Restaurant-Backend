@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import InventoryTypesTables, InventoryItems, TableTest
+from .models import InventoryTypesTables, InventoryItems, TableTest, CustomTable
 
 #This is the serializer that the model needs to transform the data of the settings from sql data to json api
 class InventoryTypesTablesSerializer(serializers.ModelSerializer):
@@ -107,3 +107,15 @@ class InventoryItemTest(serializers.ModelSerializer):
                 raise serializers.ValidationError(f"Field '{key}' is not defined in the {schema.name} schema.")
             
         return attrs
+
+
+class CustomTableSerializer(serializers.Serializer):
+    customer_id = serializers.IntegerField()
+    table_name = serializers.CharField(max_length = 100)
+    schema = serializers.DictField()
+
+
+class CustomTableSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = CustomTable
+        fields = "__all__"
